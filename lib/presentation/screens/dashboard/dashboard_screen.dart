@@ -90,57 +90,63 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Widget _buildTodayTasks() {
-    return Container(
-      margin: EdgeInsets.all(16.w),
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.primary, AppColors.primaryLight],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16.r),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+    return InkWell(
+      onTap: () => Navigator.pushNamed(context, Routes.todayTasks),
+      child: Container(
+        margin: EdgeInsets.all(16.w),
+        padding: EdgeInsets.all(16.w),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [AppColors.primary, AppColors.primaryLight],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.today_outlined, color: AppColors.textOnPrimary, size: 24.sp),
-              SizedBox(width: 8.w),
-              Text(
-                'Today\'s Tasks',
-                style: AppTextStyles.h3.copyWith(color: AppColors.textOnPrimary),
-              ),
-              const Spacer(),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
-                decoration: BoxDecoration(
-                  color: AppColors.textOnPrimary.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(16.r),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.today_outlined, color: AppColors.textOnPrimary, size: 24.sp),
+                SizedBox(width: 8.w),
+                Text(
+                  'Today\'s Tasks',
+                  style: AppTextStyles.h3.copyWith(color: AppColors.textOnPrimary),
                 ),
-                child: Text(
-                  '3 Pending',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.textOnPrimary,
-                    fontWeight: FontWeight.w600,
+                const Spacer(),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+                  decoration: BoxDecoration(
+                    color: AppColors.textOnPrimary.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Text(
+                    'Tap to view',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.textOnPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
+              ],
+            ),
+            SizedBox(height: 12.h),
+            Text(
+              'Manage your daily farm tasks',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textOnPrimary.withOpacity(0.9),
               ),
-            ],
-          ),
-          SizedBox(height: 12.h),
-          _buildTaskItem('Water Field A', '08:00 AM', false),
-          _buildTaskItem('Apply Fertilizer', '10:30 AM', false),
-          _buildTaskItem('Check Irrigation', '04:00 PM', false),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

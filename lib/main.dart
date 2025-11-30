@@ -21,6 +21,7 @@ import 'presentation/screens/ai/ai_assistant_screen.dart';
 import 'presentation/screens/market/market_screen.dart';
 import 'presentation/screens/diary/diary_screen.dart';
 import 'presentation/screens/schemes/schemes_screen.dart';
+import 'presentation/screens/tasks/today_tasks_screen.dart';
 import 'data/local/database/app_database.dart';
 
 void main() async {
@@ -102,6 +103,7 @@ class AgroSenseApp extends ConsumerWidget {
             Routes.market: (context) => const MarketScreen(),
             Routes.diary: (context) => const DiaryScreen(),
             Routes.schemes: (context) => const SchemesScreen(),
+            Routes.todayTasks: (context) => const TodayTasksScreen(),
           },
         );
       },

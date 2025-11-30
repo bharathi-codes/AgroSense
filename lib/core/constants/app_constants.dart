@@ -69,6 +69,7 @@ class Routes {
   static const String market = '/market';
   static const String cropManagement = '/crop-management';
   static const String taskDetails = '/task-details';
+  static const String todayTasks = '/tasks/today';
   static const String diary = '/diary';
   static const String diaryEntry = '/diary/entry';
   static const String finance = '/finance';

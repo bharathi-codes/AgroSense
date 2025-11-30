@@ -105,6 +105,37 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
     }
   }
 
+  Future<void> _developerLogin() async {
+    setState(() => _isLoading = true);
+
+    try {
+      // Simulate developer login without actual Firebase auth
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      if (mounted) {
+        // Navigate directly to dashboard
+        Navigator.of(context).pushReplacementNamed(Routes.dashboard);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Developer mode active - Bypassed authentication'),
+            backgroundColor: AppColors.warning,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Developer login failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -227,6 +258,21 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                   icon: const Icon(Icons.g_mobiledata, size: 32),
                   label: const Text('Continue with Google'),
                 ),
+                
+                // Developer Login Button
+                if (AppConstants.isDeveloperMode) ...[
+                  const SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    onPressed: _isLoading ? null : _developerLogin,
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 50),
+                      foregroundColor: AppColors.error,
+                      side: const BorderSide(color: AppColors.error),
+                    ),
+                    icon: const Icon(Icons.developer_mode),
+                    label: const Text('Developer Login'),
+                  ),
+                ],
                 
                 const SizedBox(height: 40),
                 

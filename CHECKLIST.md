@@ -41,8 +41,9 @@
 ### Completed ✓
 - [x] Splash screen
 - [x] Language selection screen
-- [x] Phone auth screen
+- [x] Phone auth screen (with Google Sign-In and Developer Login)
 - [x] Dashboard screen (main UI)
+- [x] Today Tasks screen (Full CRUD with weather prioritization)
 
 ### To Implement
 - [ ] OTP verification screen
@@ -69,16 +70,20 @@
 - [ ] AIRepository (Gemini API)
 - [ ] SchemesRepository (Eligibility logic)
 
-## Phase 6: State Management (Riverpod)
+## Phase 6: State Management (Riverpod) ✓
 
-- [ ] Auth providers
-- [ ] User profile provider
-- [ ] Fields state provider
-- [ ] Tasks state provider
-- [ ] Weather state provider
-- [ ] Market prices provider
-- [ ] Community posts provider
-- [ ] AI chat provider
+**Decision: Using existing StreamProviders from `repository_providers.dart`**
+
+- [x] Auth providers (currentUserIdProvider, isLoggedInProvider)
+- [x] User profile provider (via authRepositoryProvider)
+- [x] Fields state provider (userFieldsProvider - StreamProvider)
+- [x] Tasks state provider (userTasksProvider - StreamProvider)
+- [x] Weather state provider (weatherRepositoryProvider)
+- [x] Market prices provider (marketPricesProvider - StreamProvider)
+- [x] Community posts provider (communityPostsProvider - StreamProvider)
+- [x] AI chat provider (aiRepositoryProvider)
+
+**Note:** All providers are StreamProvider or FutureProvider based, working with existing repository layer. Full StateNotifier implementation deferred to future phase when CRUD operations are needed in UI.
 
 ## Phase 7: Features Implementation
 
