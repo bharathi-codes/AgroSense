@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../../core/theme/app_theme.dart';
@@ -92,10 +93,45 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
       if (mounted) {
         Navigator.of(context).pushReplacementNamed(Routes.dashboard);
       }
+    } on PlatformException catch (e) {
+      if (mounted) {
+        String errorMessage = 'Google Sign-In failed';
+        
+        // Handle specific error codes
+        if (e.code == 'sign_in_failed') {
+          if (e.message?.contains('10:') ?? false) {
+            errorMessage = 'Configuration Error: Please add SHA-1 fingerprint to Firebase Console.\n\n'
+                'Steps:\n'
+                '1. Run: cd android && gradlew signingReport\n'
+                '2. Copy SHA1 fingerprint\n'
+                '3. Add to Firebase Console > Project Settings\n'
+                '4. Download new google-services.json\n\n'
+                'See GOOGLE_SIGNIN_FIX.md for details';
+          } else {
+            errorMessage = 'Google Sign-In failed: ${e.message}';
+          }
+        } else if (e.code == 'network_error') {
+          errorMessage = 'Network error. Please check your internet connection.';
+        }
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            duration: const Duration(seconds: 8),
+            action: SnackBarAction(
+              label: 'Use Dev Login',
+              onPressed: () => _developerLogin(),
+            ),
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Google Sign-In failed: $e')),
+          SnackBar(
+            content: Text('Google Sign-In failed: $e'),
+            duration: const Duration(seconds: 5),
+          ),
         );
       }
     } finally {
