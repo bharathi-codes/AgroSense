@@ -40,14 +40,13 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
 
     try {
       final database = ref.read(databaseProvider);
-      final authRepo = ref.read(authRepositoryProvider);
+      final userId = await ref.read(currentUserIdProvider.future);
       
-      final userId = await authRepo.getCurrentUserId();
-      if (userId == null) {
+      if (userId == null || userId.isEmpty) {
         throw Exception('User not logged in');
       }
 
-      final entries = await database.getUserDiaryEntries(userId);
+      final entries = await database.watchDiaryEntriesByUserId(userId).first;
       
       setState(() {
         _entries = _selectedCategory == null

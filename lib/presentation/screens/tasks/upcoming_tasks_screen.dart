@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:drift/drift.dart' hide Column;
+import 'package:drift/drift.dart' as drift hide Column;
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
@@ -34,17 +34,22 @@ class _UpcomingTasksScreenState extends ConsumerState<UpcomingTasksScreen> {
 
     try {
       final database = ref.read(databaseProvider);
-      final authRepo = ref.read(authRepositoryProvider);
+      final userId = await ref.read(currentUserIdProvider.future);
       
-      final userId = await authRepo.getCurrentUserId();
-      if (userId == null) {
+      if (userId == null || userId.isEmpty) {
         throw Exception('User not logged in');
       }
 
-      final tomorrow = DateTime.now().add(const Duration(days: 1));
-      final startOfTomorrow = DateTime(tomorrow.year, tomorrow.month, tomorrow.day);
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final allTasks = await database.watchTasksByUserId(userId).first;
       
-      final tasks = await database.getUpcomingTasks(userId, startOfTomorrow);
+      // Filter upcoming tasks (not completed, not deleted, due date is in the future)
+      final tasks = allTasks.where((task) => 
+        !task.isCompleted && 
+        !task.isDeleted && 
+        task.dueDate.isAfter(today)
+      ).toList();
 
       setState(() {
         _tasks = tasks;
@@ -66,11 +71,11 @@ class _UpcomingTasksScreenState extends ConsumerState<UpcomingTasksScreen> {
         await database.completeTask(task.id);
       } else {
         await database.updateTask(TasksCompanion(
-          id: Value(task.id),
-          isCompleted: const Value(false),
-          completedAt: const Value(null),
-          updatedAt: Value(DateTime.now()),
-          isSynced: const Value(false),
+          id: drift.Value(task.id),
+          isCompleted: const drift.Value(false),
+          completedAt: const drift.Value(null),
+          updatedAt: drift.Value(DateTime.now()),
+          isSynced: const drift.Value(false),
         ));
       }
       
@@ -118,7 +123,14 @@ class _UpcomingTasksScreenState extends ConsumerState<UpcomingTasksScreen> {
 
     try {
       final database = ref.read(databaseProvider);
-      await database.deleteTask(task.id);
+      // Soft delete - mark as deleted
+      await database.updateTask(
+        TasksCompanion(
+          id: drift.Value(task.id),
+          isDeleted: const drift.Value(true),
+          updatedAt: drift.Value(DateTime.now()),
+        ),
+      );
       await _loadUpcomingTasks();
 
       if (!mounted) return;
@@ -457,18 +469,18 @@ class _AddTaskSheetState extends ConsumerState<AddTaskSheet> {
 
       final now = DateTime.now();
       final taskCompanion = TasksCompanion(
-        id: Value(const Uuid().v4()),
-        userId: Value(userId),
-        title: Value(_titleController.text.trim()),
-        description: Value(_descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim()),
-        taskType: Value(_taskType),
-        dueDate: Value(dueDate),
-        priority: Value(_priority),
-        isCompleted: const Value(false),
-        createdAt: Value(now),
-        updatedAt: Value(now),
-        isSynced: const Value(false),
-        isDeleted: const Value(false),
+        id: drift.Value(const Uuid().v4()),
+        userId: drift.Value(userId),
+        title: drift.Value(_titleController.text.trim()),
+        description: drift.Value(_descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim()),
+        taskType: drift.Value(_taskType),
+        dueDate: drift.Value(dueDate),
+        priority: drift.Value(_priority),
+        isCompleted: const drift.Value(false),
+        createdAt: drift.Value(now),
+        updatedAt: drift.Value(now),
+        isSynced: const drift.Value(false),
+        isDeleted: const drift.Value(false),
       );
 
       await database.insertTask(taskCompanion);
@@ -684,14 +696,14 @@ class _EditTaskSheetState extends ConsumerState<EditTaskSheet> {
       );
 
       final updatedTaskCompanion = TasksCompanion(
-        id: Value(widget.task.id),
-        title: Value(_titleController.text.trim()),
-        description: Value(_descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim()),
-        taskType: Value(_taskType),
-        dueDate: Value(dueDate),
-        priority: Value(_priority),
-        updatedAt: Value(DateTime.now()),
-        isSynced: const Value(false),
+        id: drift.Value(widget.task.id),
+        title: drift.Value(_titleController.text.trim()),
+        description: drift.Value(_descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim()),
+        taskType: drift.Value(_taskType),
+        dueDate: drift.Value(dueDate),
+        priority: drift.Value(_priority),
+        updatedAt: drift.Value(DateTime.now()),
+        isSynced: const drift.Value(false),
       );
 
       await database.updateTask(updatedTaskCompanion);

@@ -59,7 +59,7 @@ class _FarmOverviewScreenState extends ConsumerState<FarmOverviewScreen> {
       final weekStart = today.subtract(Duration(days: today.weekday - 1));
       final weekEnd = weekStart.add(const Duration(days: 6));
 
-      final allTasks = await database.getUserTasks(userId);
+      final allTasks = await database.watchTasksByUserId(userId).first;
       _pendingTasks = allTasks.where((t) => !t.isCompleted && !t.isDeleted).length;
       _completedThisWeek = allTasks.where((t) => 
         t.isCompleted && 
@@ -84,7 +84,7 @@ class _FarmOverviewScreenState extends ConsumerState<FarmOverviewScreen> {
         _taskCompletionData[i] = completed;
       }
 
-      final diaryEntries = await database.getUserDiaryEntries(userId);
+      final diaryEntries = await database.watchDiaryEntriesByUserId(userId).first;
       _recentDiaryEntries = diaryEntries.take(3).toList();
 
       final monthStart = DateTime(now.year, now.month, 1);
@@ -102,7 +102,20 @@ class _FarmOverviewScreenState extends ConsumerState<FarmOverviewScreen> {
                        e.entryDate.isBefore(monthEnd.add(const Duration(days: 1))))
           .fold(0.0, (sum, e) => sum + (e.amount ?? 0.0));
 
-      _topPrices = (await database.getRecentMarketPrices()).take(3).toList();
+      final marketRepo = ref.read(marketRepositoryProvider);
+      final marketPricesData = await marketRepo.getMarketPrices();
+      _topPrices = marketPricesData.take(3).map((p) => MarketPrice(
+        id: p['id'] ?? '',
+        commodity: p['commodity'] ?? '',
+        market: p['market'] ?? '',
+        state: p['state'] ?? '',
+        minPrice: (p['minPrice'] as num?)?.toDouble() ?? 0.0,
+        maxPrice: (p['maxPrice'] as num?)?.toDouble() ?? 0.0,
+        modalPrice: (p['modalPrice'] as num?)?.toDouble() ?? 0.0,
+        priceDate: DateTime.tryParse(p['priceDate'] ?? '') ?? DateTime.now(),
+        cachedAt: DateTime.tryParse(p['cachedAt'] ?? '') ?? DateTime.now(),
+        isSynced: p['isSynced'] ?? false,
+      )).toList();
 
       try {
         final weatherRepo = ref.read(weatherRepositoryProvider);

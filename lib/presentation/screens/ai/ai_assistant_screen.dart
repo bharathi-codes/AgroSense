@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/logger.dart';
 import '../../../data/local/database/app_database.dart';
 import '../../../providers/repository_providers.dart';
 
@@ -36,14 +37,14 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
   Future<void> _loadChatHistory() async {
     try {
       final database = ref.read(databaseProvider);
-      final userId = ref.read(currentUserIdProvider);
+      final userId = await ref.read(currentUserIdProvider.future);
       
       if (userId == null) {
         setState(() => _isInitializing = false);
         return;
       }
 
-      final messages = await database.getChatMessages(userId);
+      final messages = await database.getChatMessagesByUserId(userId);
       setState(() {
         _messages = messages;
         _isInitializing = false;
@@ -60,10 +61,13 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     final userMessage = _messageController.text.trim();
     _messageController.clear();
 
+    // Get userId first
+    final userId = await ref.read(currentUserIdProvider.future) ?? '';
+
     setState(() {
       _messages.add(ChatMessage(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
-        userId: ref.read(currentUserIdProvider) ?? '',
+        userId: userId,
         message: userMessage,
         response: '',
         isUser: true,
@@ -75,36 +79,43 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
 
     try {
       final aiRepo = ref.read(aiRepositoryProvider);
-      final context = await _buildContext();
+      final userContext = await _buildContext();
       
-      final response = await aiRepo.getAdvice(userMessage, context);
-
-      final aiMessage = ChatMessage(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        userId: ref.read(currentUserIdProvider) ?? '',
+      final result = await aiRepo.sendMessage(
+        userId: userId,
         message: userMessage,
-        response: response,
-        isUser: false,
-        timestamp: DateTime.now(),
+        context: userContext,
       );
 
-      setState(() {
-        _messages.add(aiMessage);
-        _isLoading = false;
-      });
-      
-      // Save to database
-      final database = ref.read(databaseProvider);
-      await database.insertChatMessage(ChatMessagesCompanion.insert(
-        id: aiMessage.id,
-        userId: aiMessage.userId,
-        message: userMessage,
-        response: response,
-        isUser: false,
-        timestamp: aiMessage.timestamp,
-      ));
+      result.fold(
+        (failure) {
+          setState(() => _isLoading = false);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error: ${failure.message}'),
+                backgroundColor: AppColors.error,
+              ),
+            );
+          }
+        },
+        (response) {
+          final aiMessage = ChatMessage(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            userId: userId,
+            message: userMessage,
+            response: response,
+            isUser: false,
+            timestamp: DateTime.now(),
+          );
 
-      _scrollToBottom();
+          setState(() {
+            _messages.add(aiMessage);
+            _isLoading = false;
+          });
+          _scrollToBottom();
+        },
+      );
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
@@ -120,20 +131,23 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
 
   Future<Map<String, dynamic>> _buildContext() async {
     final database = ref.read(databaseProvider);
-    final userId = ref.read(currentUserIdProvider);
+    final userId = await ref.read(currentUserIdProvider.future);
     
-    if (userId == null) return {};
+    if (userId == null || userId.isEmpty) return {};
 
-    final fields = await database.getUserFields(userId).first;
-    final tasks = await database.getUserTasks(userId).first;
-    final weather = await database.getLatestWeather();
+    try {
+      final fields = await database.getFieldsByUserId(userId);
+      final tasks = await database.watchTasksByUserId(userId).first;
 
-    return {
-      'fieldsCount': fields.length,
-      'pendingTasks': tasks.where((t) => !t.isCompleted).length,
-      'crops': fields.map((f) => f.cropType).where((c) => c != null).toSet().toList(),
-      'weatherCondition': weather != null ? 'Available' : 'Not available',
-    };
+      return {
+        'fieldsCount': fields.length,
+        'pendingTasks': tasks.where((t) => !t.isCompleted && !t.isDeleted).length,
+        'crops': fields.map((f) => f.cropType).where((c) => c != null).toSet().toList(),
+      };
+    } catch (e) {
+      AppLogger.error('Error building context', e);
+      return {};
+    }
   }
 
   void _scrollToBottom() {

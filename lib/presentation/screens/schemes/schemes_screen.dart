@@ -56,7 +56,7 @@ class _SchemesScreenState extends ConsumerState<SchemesScreen> {
 
     try {
       final schemesRepo = ref.read(schemesRepositoryProvider);
-      await schemesRepo.syncSchemes();
+      await schemesRepo.refreshSchemes(language: _selectedLanguage);
       await _loadSchemes();
 
       if (!mounted) return;

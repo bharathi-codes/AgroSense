@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:fl_chart/fl_chart.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/local/database/app_database.dart';
 import '../../../providers/repository_providers.dart';
@@ -37,10 +36,22 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
   Future<void> _loadMarketPrices() async {
     setState(() => _isLoading = true);
     try {
-      final database = ref.read(databaseProvider);
-      final prices = await database.getAllMarketPrices();
+      final marketRepo = ref.read(marketRepositoryProvider);
+      final prices = await marketRepo.getMarketPrices();
       setState(() {
-        _prices = prices;
+        // Convert Map to MarketPrice objects
+        _prices = prices.map((p) => MarketPrice(
+          id: p['id'] ?? '',
+          commodity: p['commodity'] ?? '',
+          market: p['market'] ?? '',
+          state: p['state'] ?? '',
+          minPrice: (p['minPrice'] as num?)?.toDouble() ?? 0.0,
+          maxPrice: (p['maxPrice'] as num?)?.toDouble() ?? 0.0,
+          modalPrice: (p['modalPrice'] as num?)?.toDouble() ?? 0.0,
+          priceDate: DateTime.tryParse(p['priceDate'] ?? '') ?? DateTime.now(),
+          cachedAt: DateTime.tryParse(p['cachedAt'] ?? '') ?? DateTime.now(),
+          isSynced: p['isSynced'] ?? false,
+        )).toList();
         _isLoading = false;
       });
     } catch (e) {
@@ -55,8 +66,7 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
 
   Future<void> _refreshPrices() async {
     try {
-      final marketRepo = ref.read(marketRepositoryProvider);
-      await marketRepo.syncMarketPrices();
+      // Just reload prices - API always fetches fresh data
       await _loadMarketPrices();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
