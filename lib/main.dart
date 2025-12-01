@@ -22,7 +22,9 @@ import 'presentation/screens/market/market_screen.dart';
 import 'presentation/screens/diary/diary_screen.dart';
 import 'presentation/screens/schemes/schemes_screen.dart';
 import 'presentation/screens/tasks/today_tasks_screen.dart';
+import 'presentation/screens/tasks/upcoming_tasks_screen.dart';
 import 'data/local/database/app_database.dart';
+import 'providers/repository_providers.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,7 +50,7 @@ void main() async {
     ProviderScope(
       overrides: [
         // Provide database instance
-        appDatabaseProvider.overrideWithValue(database),
+        databaseProvider.overrideWithValue(database),
       ],
       child: EasyLocalization(
         supportedLocales: const [
@@ -63,11 +65,6 @@ void main() async {
     ),
   );
 }
-
-// Provider for database instance
-final appDatabaseProvider = Provider<AppDatabase>((ref) {
-  throw UnimplementedError();
-});
 
 class AgroSenseApp extends ConsumerWidget {
   const AgroSenseApp({super.key});

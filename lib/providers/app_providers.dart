@@ -2,12 +2,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 import '../data/local/database/app_database.dart';
-import '../main.dart';
+import 'repository_providers.dart';
 
 // ==================== TASK PROVIDERS ====================
 
 final taskRepositoryProvider = Provider<TaskRepository>((ref) {
-  final database = ref.watch(appDatabaseProvider);
+  final database = ref.watch(databaseProvider);
   return TaskRepository(database);
 });
 
@@ -29,7 +29,7 @@ final allTasksProvider = StreamProvider<List<Task>>((ref) {
 // ==================== FIELD PROVIDERS ====================
 
 final fieldRepositoryProvider = Provider<FieldRepository>((ref) {
-  final database = ref.watch(appDatabaseProvider);
+  final database = ref.watch(databaseProvider);
   return FieldRepository(database);
 });
 
@@ -41,7 +41,7 @@ final allFieldsProvider = StreamProvider<List<Field>>((ref) {
 // ==================== DIARY PROVIDERS ====================
 
 final diaryRepositoryProvider = Provider<DiaryRepository>((ref) {
-  final database = ref.watch(appDatabaseProvider);
+  final database = ref.watch(databaseProvider);
   return DiaryRepository(database);
 });
 
