@@ -70,6 +70,8 @@ class Routes {
   static const String cropManagement = '/crop-management';
   static const String taskDetails = '/task-details';
   static const String todayTasks = '/tasks/today';
+  static const String upcomingTasks = '/tasks/upcoming';
+  static const String farmOverview = '/farm-overview';
   static const String diary = '/diary';
   static const String diaryEntry = '/diary/entry';
   static const String finance = '/finance';

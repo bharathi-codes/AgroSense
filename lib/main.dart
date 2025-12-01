@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:easy_localization/easy_localization.dart';
-
 import 'firebase_options.dart';
 import 'core/theme/app_theme.dart';
 import 'core/constants/app_constants.dart';
@@ -12,6 +11,7 @@ import 'presentation/screens/splash/splash_screen.dart';
 import 'presentation/screens/language/language_selection_screen.dart';
 import 'presentation/screens/auth/phone_auth_screen.dart';
 import 'presentation/screens/dashboard/dashboard_screen.dart';
+import 'presentation/screens/dashboard/farm_overview_screen.dart';
 import 'presentation/screens/weather/weather_screen.dart';
 import 'presentation/screens/settings/settings_screen.dart';
 import 'presentation/screens/profile/profile_screen.dart';
@@ -104,6 +104,8 @@ class AgroSenseApp extends ConsumerWidget {
             Routes.diary: (context) => const DiaryScreen(),
             Routes.schemes: (context) => const SchemesScreen(),
             Routes.todayTasks: (context) => const TodayTasksScreen(),
+            Routes.upcomingTasks: (context) => const UpcomingTasksScreen(),
+            Routes.farmOverview: (context) => const FarmOverviewScreen(),
           },
         );
       },
