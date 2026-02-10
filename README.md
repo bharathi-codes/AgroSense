@@ -66,4 +66,5 @@ lib/
 - **fl_chart 0.66.2** - Data visualization charts
 
 ## License
-BHARATHI B. 
+BHARATHI B.
+HARI PRASATH S S.
